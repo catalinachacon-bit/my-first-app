@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
   <title>Contador de clics | Colegio Bolívar</title>
+
   <style>
     * {
       box-sizing: border-box;
@@ -15,73 +17,126 @@
       display: grid;
       place-items: center;
       padding: 24px;
-      font-family: Arial, sans-serif;
-      background: #eef4f0;
-      color: #163e2a;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      color: #edf5ff;
+      background:
+        radial-gradient(circle at top, #142c50, transparent 65%),
+        #070e1f;
     }
 
     main {
       width: 100%;
       max-width: 420px;
-      padding: 36px 24px;
+      padding: 40px 28px;
       text-align: center;
-      background: white;
-      border-radius: 20px;
-      box-shadow: 0 12px 36px rgb(22 62 42 / 12%);
+      background: #101c32;
+      border: 1px solid #293c58;
+      border-radius: 24px;
+      box-shadow: 0 24px 64px rgb(0 0 0 / 40%);
+    }
+
+    .etiqueta {
+      display: inline-block;
+      margin-bottom: 20px;
+      padding: 6px 12px;
+      border: 1px solid #28717d;
+      border-radius: 999px;
+      background: #122e3c;
+      color: #64f5df;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
     }
 
     h1 {
       margin: 0 0 12px;
-      font-size: 1.8rem;
+      font-size: clamp(1.6rem, 6vw, 2rem);
+      letter-spacing: -0.04em;
     }
 
     p {
-      line-height: 1.5;
+      margin: 0;
+      color: #afbdd2;
+      line-height: 1.6;
     }
 
     output {
       display: block;
-      margin: 24px 0;
-      font-size: 5rem;
-      font-weight: bold;
+      margin: 28px 0;
+      color: #6af9e3;
+      font-size: clamp(4rem, 18vw, 6rem);
+      font-weight: 750;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.2;
       overflow-wrap: anywhere;
+      text-shadow: 0 0 30px rgb(74 255 221 / 35%);
     }
 
     button {
       width: 100%;
+      min-height: 50px;
       padding: 14px 20px;
-      border: 0;
-      border-radius: 10px;
+      border: 1px solid transparent;
+      border-radius: 12px;
       font: inherit;
-      font-weight: bold;
+      font-weight: 650;
       cursor: pointer;
+      transition:
+        transform 160ms ease,
+        box-shadow 160ms ease,
+        background-color 160ms ease;
     }
 
     #incrementar {
-      background: #17623d;
-      color: white;
+      color: #061c24;
+      background: linear-gradient(120deg, #65ffe0, #42d9ff);
+      box-shadow: 0 0 22px rgb(66 217 255 / 22%);
     }
 
     #incrementar:hover {
-      background: #10492d;
+      transform: translateY(-2px);
+      box-shadow: 0 0 32px rgb(66 217 255 / 40%);
     }
 
     #reiniciar {
-      margin-top: 12px;
-      background: #eef4f0;
-      color: #163e2a;
+      margin-top: 14px;
+      color: #c6b0ff;
+      background: #1c2340;
+      border-color: #9670f5;
+    }
+
+    #reiniciar:hover {
+      background: #2b2b50;
+      box-shadow: 0 0 20px rgb(150 112 245 / 25%);
+    }
+
+    button:active {
+      transform: scale(0.98);
     }
 
     button:focus-visible {
-      outline: 3px solid #c48a10;
-      outline-offset: 4px;
+      outline: 3px solid #ffffff;
+      outline-offset: 5px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      button {
+        transition: none;
+      }
+
+      button:hover,
+      button:active {
+        transform: none;
+      }
     }
   </style>
 </head>
 <body>
   <main>
+    <span class="etiqueta">Nuestros eventos</span>
     <h1>Colegio Bolívar</h1>
-    <p>Contador de clics para nuestros eventos. ¡Haz clic y participa!</p>
+    <p>¡Cada clic cuenta! Participa y suma tu energía al evento.</p>
 
     <output id="contador" aria-label="Total de clics" aria-live="polite">0</output>
 
