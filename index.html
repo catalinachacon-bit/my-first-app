@@ -1,34 +1,315 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="color-scheme" content="dark">
-  <title>Contador de clics | Colegio Bolívar</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="actions.js" defer></script>
-</head>
-<body>
-  <main>
-    <span class="etiqueta">Colegio Bolívar</span>
-    <h1 id="titulo-evento">Nuestros eventos</h1>
-    <p>¡Cada clic cuenta! Participa y suma tu energía al evento.</p>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Click Speed Challenge</title>
 
-    <div class="campo">
-      <label for="nombre-evento">Título del evento</label>
-      <input
-        id="nombre-evento"
-        type="text"
-        value="Nuestros eventos"
-        placeholder="Escribe el nombre del evento"
-        maxlength="80"
-      >
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #101827;
+            color: white;
+            text-align: center;
+            padding: 30px 15px;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 550px;
+            margin: 30px auto;
+            padding: 30px;
+            background: #1e293b;
+            border-radius: 16px;
+        }
+
+        h1 {
+            color: #38bdf8;
+        }
+
+        input, select, button {
+            padding: 12px;
+            margin: 8px;
+            border-radius: 8px;
+            border: none;
+            font-size: 16px;
+        }
+
+        input, select {
+            background: white;
+            color: #111827;
+        }
+
+        button {
+            background: #0284c7;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover:not(:disabled) {
+            background: #0369a1;
+        }
+
+        button:disabled {
+            background: #64748b;
+            cursor: not-allowed;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 25px 0;
+            gap: 10px;
+        }
+
+        .stat {
+            background: #334155;
+            padding: 18px;
+            border-radius: 10px;
+            flex: 1;
+        }
+
+        .number {
+            display: block;
+            font-size: 32px;
+            font-weight: bold;
+            margin-top: 10px;
+            color: #38bdf8;
+        }
+
+        #clickButton {
+            width: 85%;
+            padding: 25px;
+            font-size: 22px;
+            background: #16a34a;
+        }
+
+        #clickButton:hover:not(:disabled) {
+            background: #15803d;
+        }
+
+        #status {
+            min-height: 25px;
+            margin-top: 15px;
+        }
+
+        #leaderboard {
+            margin-top: 25px;
+            text-align: left;
+        }
+
+        #leaderboard li {
+            padding: 6px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Click Speed Challenge</h1>
+        <p>¡Haz tantos clicks como puedas antes de que termine el tiempo!</p>
+
+        <div>
+            <input
+                type="text"
+                id="playerName"
+                placeholder="Escribe tu nombre"
+            >
+
+            <select id="duration">
+                <option value="10">10 segundos</option>
+                <option value="20">20 segundos</option>
+                <option value="30">30 segundos</option>
+            </select>
+        </div>
+
+        <button id="startButton" type="button">Iniciar partida</button>
+
+        <div class="stats">
+            <div class="stat">
+                Tiempo
+                <span class="number" id="timer">10.00</span>
+            </div>
+
+            <div class="stat">
+                Clicks
+                <span class="number" id="clickCount">0</span>
+            </div>
+        </div>
+
+        <button id="clickButton" type="button" disabled>
+            ¡HAZ CLICK!
+        </button>
+
+        <p id="status">Escribe tu nombre y comienza.</p>
+        <h2 id="result"></h2>
+
+        <div id="leaderboard">
+            <h2>🏆 Mejores puntuaciones</h2>
+
+            <select id="rankingDuration">
+                <option value="10">Partidas de 10 segundos</option>
+                <option value="20">Partidas de 20 segundos</option>
+                <option value="30">Partidas de 30 segundos</option>
+            </select>
+
+            <ol id="rankingList"></ol>
+        </div>
     </div>
 
-    <output id="contador" aria-label="Total de clics" aria-live="polite">0</output>
+    <script>
+        // Obtener los elementos de la página
+        const startButton = document.getElementById("startButton");
+        const clickButton = document.getElementById("clickButton");
+        const durationSelect = document.getElementById("duration");
+        const playerName = document.getElementById("playerName");
+        const timerDisplay = document.getElementById("timer");
+        const clickDisplay = document.getElementById("clickCount");
+        const statusDisplay = document.getElementById("status");
+        const resultDisplay = document.getElementById("result");
+        const rankingDuration = document.getElementById("rankingDuration");
+        const rankingList = document.getElementById("rankingList");
 
-    <button id="incrementar" type="button">¡Sumar un clic!</button>
-    <button id="reiniciar" type="button">Reiniciar Contador</button>
-  </main>
+        let clicks = 0;
+        let timeLeft = 10;
+        let startTime = 0;
+        let timerInterval = null;
+        let gameActive = false;
+
+        // Cargar puntuaciones guardadas
+        let leaderboard = JSON.parse(
+            localStorage.getItem("clickChallengeScores") || '{"10":[],"20":[],"30":[]}'
+        );
+
+        // Iniciar partida
+        function startGame() {
+            if (gameActive) return;
+
+            const name = playerName.value.trim();
+
+            if (!name) {
+                statusDisplay.textContent = "Por favor, escribe tu nombre.";
+                playerName.focus();
+                return;
+            }
+
+            clearInterval(timerInterval);
+
+            clicks = 0;
+            timeLeft = Number(durationSelect.value);
+            startTime = Date.now();
+            gameActive = true;
+
+            clickDisplay.textContent = clicks;
+            timerDisplay.textContent = timeLeft.toFixed(2);
+            resultDisplay.textContent = "";
+            statusDisplay.textContent = "¡Partida en curso!";
+
+            startButton.disabled = true;
+            clickButton.disabled = false;
+            durationSelect.disabled = true;
+            playerName.disabled = true;
+
+            timerInterval = setInterval(updateTimer, 10);
+        }
+
+        // Registrar un click
+        function registerClick() {
+            if (!gameActive) return;
+
+            clicks++;
+            clickDisplay.textContent = clicks;
+        }
+
+        // Actualizar el cronómetro
+        function updateTimer() {
+            const elapsed = (Date.now() - startTime) / 1000;
+            timeLeft = Math.max(0, Number(durationSelect.value) - elapsed);
+
+            timerDisplay.textContent = timeLeft.toFixed(2);
+
+            if (timeLeft <= 0) {
+                endGame();
+            }
+        }
+
+        // Terminar partida
+        function endGame() {
+            if (!gameActive) return;
+
+            gameActive = false;
+            clearInterval(timerInterval);
+
+            clickButton.disabled = true;
+            startButton.disabled = false;
+            durationSelect.disabled = false;
+            playerName.disabled = false;
+
+            resultDisplay.textContent = `¡Terminaste con ${clicks} clicks!`;
+            statusDisplay.textContent = "Partida finalizada.";
+
+            saveScore();
+        }
+
+        // Guardar puntuación
+        function saveScore() {
+            const duration = durationSelect.value;
+
+            if (!Array.isArray(leaderboard[duration])) {
+                leaderboard[duration] = [];
+            }
+
+            leaderboard[duration].push({
+                name: playerName.value.trim(),
+                clicks: clicks
+            });
+
+            leaderboard[duration].sort((a, b) => b.clicks - a.clicks);
+            leaderboard[duration] = leaderboard[duration].slice(0, 10);
+
+            localStorage.setItem(
+                "clickChallengeScores",
+                JSON.stringify(leaderboard)
+            );
+
+            showRanking();
+        }
+
+        // Mostrar clasificación
+        function showRanking() {
+            const duration = rankingDuration.value;
+            const scores = leaderboard[duration] || [];
+
+            rankingList.innerHTML = "";
+
+            if (scores.length === 0) {
+                rankingList.innerHTML = "<li>Todavía no hay puntuaciones.</li>";
+                return;
+            }
+
+            scores.forEach((score) => {
+                const item = document.createElement("li");
+                item.textContent = `${score.name}: ${score.clicks} clicks`;
+                rankingList.appendChild(item);
+            });
+        }
+
+        // Conectar los botones
+        startButton.addEventListener("click", startGame);
+        clickButton.addEventListener("click", registerClick);
+        rankingDuration.addEventListener("change", showRanking);
+
+        // Mostrar clasificación al cargar
+        showRanking();
+
+        console.log("JavaScript cargado correctamente.");
+    </script>
+
 </body>
 </html>
